@@ -12,8 +12,12 @@ public class AdjacencyMatrix {
         n = scan.nextInt();
         System.out.print("Type the number of arcs :");
         arc = scan.nextInt();
-
+        // pour la matrice 
         int[][] matrice = new int[n][n];
+        // pour calculer les deg+ et deg- afin d'assurer que le graphe est oriente
+        int[][] deg = new int[n][2];
+        int degC = 0; // deg counter
+
         for (i = 0; i < n; i++) {
             for (j = 0; j < n; j++) {
                 matrice[i][j] = 0;
@@ -30,6 +34,21 @@ public class AdjacencyMatrix {
             }
         }
 
+        //pour calculer et remplir la matrice deg 
+        for (i = 0; i < n; i++) {
+            int degP = 0, degM = 0;
+            for (j = 0; j < n; j++) { 
+                if (matrice[i][j] == 1) {
+                    degP++;
+                }
+                if (matrice[j][i] == 1) {
+                    degM++;
+                }
+            }
+            deg[i][0] = degP;
+            deg[i][1] = degM;
+        }
+
         // afficher la matrice 
         for (i = 0; i < n; i++) {
             for (j = 0; j < n; j++) {
@@ -37,7 +56,15 @@ public class AdjacencyMatrix {
             }
             System.out.println();
         }
-        
+
+        System.out.println("-------Matrice Deg-------");
+        for (i = 0; i < n; i++) {
+            for (j = 0; j < 2; j++) {
+                System.out.print(" " + deg[i][j] + " ");
+            }
+            System.out.println();
+        }
+
         // traduire les arcs
         for (i = 0; i < n; i++) {
             for (j = 0; j < n; j++) {
