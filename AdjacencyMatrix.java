@@ -5,7 +5,7 @@ public class AdjacencyMatrix {
     public static void calculerDeg(int n , int[][] matrice){
 
         int[][] deg = new int[n][2];
-
+        int sommeP=0,sommeM=0;
         for (int i = 0; i < n; i++) {
             int degP = 0, degM = 0;
             for (int j = 0; j < n; j++) { 
@@ -26,6 +26,11 @@ public class AdjacencyMatrix {
             }
             System.out.println();
         }
+        for(int i=0;i<n;i++){
+                sommeP+=deg[i][0];
+                sommeM+=deg[i][1];
+        }
+        System.out.println("Somme de Deg+ = "+sommeP+" et Deg- = "+sommeM+"\n--------------------------------------");
     } 
     public static void main(String[] args) {
 
@@ -35,8 +40,15 @@ public class AdjacencyMatrix {
 
         System.out.print("Type the number of nodes :");
         n = scan.nextInt();
+       // forçage des arcs 
+        while (true) {
         System.out.print("Type the number of arcs :");
         arc = scan.nextInt();
+            if(arc<Math.pow(n,2)){
+                break;
+            }
+        }
+        
         // pour la matrice 
         int[][] matrice = new int[n][n];
         // pour calculer les deg+ et deg- afin d'assurer que le graphe est oriente
