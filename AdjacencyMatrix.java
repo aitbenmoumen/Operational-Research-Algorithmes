@@ -2,6 +2,31 @@ import java.util.Random;
 import java.util.Scanner;
 
 public class AdjacencyMatrix {
+    public static void calculerDeg(int n , int[][] matrice){
+
+        int[][] deg = new int[n][2];
+
+        for (int i = 0; i < n; i++) {
+            int degP = 0, degM = 0;
+            for (int j = 0; j < n; j++) { 
+                  if (matrice[i][j] == 1) {
+                    degP++;
+                }
+                if (matrice[j][i] == 1) {
+                    degM++;
+                }
+            }
+            deg[i][0] = degP;
+            deg[i][1] = degM;
+        }
+        System.out.println("-------Matrice Deg-------");
+        for (int i = 0; i < n; i++) {
+            for (int j = 0; j < 2; j++) {
+                System.out.print(" " + deg[i][j] + " ");
+            }
+            System.out.println();
+        }
+    } 
     public static void main(String[] args) {
 
         Random random = new Random();
@@ -15,9 +40,7 @@ public class AdjacencyMatrix {
         // pour la matrice 
         int[][] matrice = new int[n][n];
         // pour calculer les deg+ et deg- afin d'assurer que le graphe est oriente
-        int[][] deg = new int[n][2];
-        int degC = 0; // deg counter
-
+        
         for (i = 0; i < n; i++) {
             for (j = 0; j < n; j++) {
                 matrice[i][j] = 0;
@@ -34,21 +57,7 @@ public class AdjacencyMatrix {
             }
         }
 
-        //pour calculer et remplir la matrice deg 
-        for (i = 0; i < n; i++) {
-            int degP = 0, degM = 0;
-            for (j = 0; j < n; j++) { 
-                if (matrice[i][j] == 1) {
-                    degP++;
-                }
-                if (matrice[j][i] == 1) {
-                    degM++;
-                }
-            }
-            deg[i][0] = degP;
-            deg[i][1] = degM;
-        }
-
+        
         // afficher la matrice 
         for (i = 0; i < n; i++) {
             for (j = 0; j < n; j++) {
@@ -56,14 +65,10 @@ public class AdjacencyMatrix {
             }
             System.out.println();
         }
-
-        System.out.println("-------Matrice Deg-------");
-        for (i = 0; i < n; i++) {
-            for (j = 0; j < 2; j++) {
-                System.out.print(" " + deg[i][j] + " ");
-            }
-            System.out.println();
-        }
+        
+        //pour calculer et remplir la matrice deg 
+        calculerDeg(n , matrice);
+        
 
         // traduire les arcs
         for (i = 0; i < n; i++) {
