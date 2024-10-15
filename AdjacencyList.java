@@ -9,6 +9,10 @@ import java.util.Random;
 
 public class AdjacencyList {
 
+    /**
+     * InnerAdjacencyList
+     */
+    
     public static void main(String[] args) {
         Scanner scan = new Scanner(System.in);
         List<Integer> aList = new ArrayList<>();
@@ -21,14 +25,37 @@ public class AdjacencyList {
         System.out.println("How many arcs ? :");
         arcs = scan.nextInt();
 
-        for(int i = 0;i < nodes; i++){
-            aList.add(0,i);
-        }
-        for(int i = 0 ; i<aList.size() ; i++){
-            for(int j = 0;j < random.nextInt(nodes);j++){
 
+        int counter = arcs;
+        
+        for(int i = 0; i < nodes; i++){
+            aList.add(i);
+            while (counter>arcs) {
+                int x = random.nextInt(nodes+1);
+                for(int k=0;k<x;k++){
+                    lList.add(random.nextInt(nodes+1));
+                }
+                counter-=x;
             }
+            counter=arcs;
         }
+
+        for (Integer element : lList) {
+                System.out.print(element + " ");
+            }
+            System.out.println();
+        }
+        
+        
+        
+        
+
+
+
+
+
+
+
 
     }
 }
