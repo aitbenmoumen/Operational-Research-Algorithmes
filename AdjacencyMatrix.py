@@ -1,4 +1,6 @@
 import random
+import numpy 
+
 
 def adjacencyMatrix():
     print("Type how much nodes are in your graph :")
@@ -7,6 +9,7 @@ def adjacencyMatrix():
     arcs = int(input())
     counter = 0
     matrix = [[0 for _ in range(nodes)]for _ in range(nodes)]
+    deg = numpy.zeros((nodes,2))
     
     # filling the matrix with 0's 
     for i in range(nodes):
@@ -20,10 +23,27 @@ def adjacencyMatrix():
         if matrix[i][j] == 0 :
             matrix[i][j] = 1
             counter+=1
-    
+    # caluculate deg
+    for i in range(nodes):
+        degP = 0
+        degM = 0
+        for j in range(nodes):
+            if matrix[i][j] == 1:
+                degP+=1
+            if matrix[j][i] == 1:
+                degM+=1
+        deg[i][0] = degP
+        deg[i][1] = degM
+
+
     # Display matrix
     for r in matrix:
         print(r)
+
+    # Display the deg matrix
+    for r in deg:
+        print(r)
+
 
     # Interpretation du graph
     for i in range(nodes):
