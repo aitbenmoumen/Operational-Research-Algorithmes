@@ -1,5 +1,5 @@
 import random
-import numpy 
+import numpy  # type: ignore
 
 
 def adjacencyMatrix():
@@ -8,13 +8,9 @@ def adjacencyMatrix():
     print("How many arcs :")
     arcs = int(input())
     counter = 0
-    matrix = [[0 for _ in range(nodes)]for _ in range(nodes)]
+    matrix = numpy.zeros((nodes,nodes))
     deg = numpy.zeros((nodes,2))
-    
-    # filling the matrix with 0's 
-    for i in range(nodes):
-        for j in range(nodes):
-            matrix[i][j] = 0
+
     
     # adding arcs 
     while(counter < arcs):
@@ -23,6 +19,7 @@ def adjacencyMatrix():
         if matrix[i][j] == 0 :
             matrix[i][j] = 1
             counter+=1
+
     # caluculate deg
     for i in range(nodes):
         degP = 0
@@ -35,7 +32,15 @@ def adjacencyMatrix():
         deg[i][0] = degP
         deg[i][1] = degM
 
-
+    # Calculer le deg pour assurer le fait que le graph est oriente      
+    sommeDP = 0
+    sommeDM = 0
+    for i in range(nodes):
+        sommeDP+=deg[i][0]
+    for i in range(nodes):
+        sommeDM+=deg[i][1]
+    
+    
     # Display matrix
     for r in matrix:
         print(r)
@@ -43,7 +48,7 @@ def adjacencyMatrix():
     # Display the deg matrix
     for r in deg:
         print(r)
-
+    print(f"la somme des degres+ vaut : {int(sommeDP)} et les degres- vaut {int(sommeDM)}")
 
     # Interpretation du graph
     for i in range(nodes):
