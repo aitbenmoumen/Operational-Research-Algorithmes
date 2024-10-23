@@ -24,7 +24,19 @@ G.add_edge("A","F")
 G.add_edge("F","E")
 G.add_edge("E","C")
 
-nx.draw(G,with_labels="true",node_color="green",node_size=500)
+# To fix the position in order to have the same graph each time 
+pos = {
+       "A":(1,2),
+       "B":(3,4),
+       "C":(1,6),
+       "D":(2,4.5),
+       "E":(2,1),
+       "F":(3,5)
+       }
+
+# Pass everything you need about drawing as a parametre in nx.draw()
+
+nx.draw(G,pos=pos,with_labels="true",node_color="green",node_size=500)
 plt.margins(0.5)
 plt.show()
 
