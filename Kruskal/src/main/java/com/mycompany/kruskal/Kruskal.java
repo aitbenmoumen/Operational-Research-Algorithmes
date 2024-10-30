@@ -19,9 +19,12 @@ public class Kruskal {
         System.out.print("enter the number of nodes :");
         
         int nodes = sc.nextInt();
-        G.dimension(nodes);
+        G.dimension(nodes); // fix the size of the initial linked list 
         System.out.print("enter the number of edges :");
         int edges = sc.nextInt();
+        
+        
+        // forcing the edges to be added khnowing that it's an undirected graph n(n-1)/2 and n(n-1) for the directed one
         while (edges>(nodes*(nodes-1))/2){
             System.out.print("the number of edges must be lower or equal to "+ (nodes*(nodes-1))/2 +":");
             edges = sc.nextInt();
@@ -29,9 +32,11 @@ public class Kruskal {
         int s, w;
         // Random graph generation
         for (int i = 0; i < edges; i++) {
-            s = rd.nextInt(nodes);
-            w = rd.nextInt(50);
-            G.add_Edge(s, w, nodes); // Call the method to add edges
+            s = rd.nextInt(nodes); // random source
+            w = rd.nextInt(50); // random weight
+            // I added nodes to generate destination and limit the random number to nodes
+            G.add_Edge(s, w, nodes);
+            
         }
         G.showGraph();
     }
