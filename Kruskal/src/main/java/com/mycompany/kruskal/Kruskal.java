@@ -24,7 +24,7 @@ public class Kruskal {
         int edges = sc.nextInt();
         
         
-        // forcing the edges to be added khnowing that it's an undirected graph n(n-1)/2 and n(n-1) for the directed one
+        
         while (edges>(nodes*(nodes-1))/2){
             System.out.print("the number of edges must be lower or equal to "+ (nodes*(nodes-1))/2 +":");
             edges = sc.nextInt();
