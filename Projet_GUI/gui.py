@@ -1,5 +1,10 @@
 import tkinter as tk
 from Ford_Fulkerson import display_ford_fulkerson_graph
+from welsh_powel import display_welsh_powell_graph
+from Kruskal import  display_kruskal_graph
+from Dijkstra import display_dijkstra_graph
+from Bellman_ford import display_bellman_ford_graph
+
 from tkinter import ttk
 
 # Main Tkinter GUI
@@ -12,10 +17,10 @@ button_height = 2  # Used only for tk.Button, not ttk.Button
 
 # Buttons with consistent size
 Ford_Fulkerson = tk.Button(gui, text="Ford Fulkerson", command=display_ford_fulkerson_graph, width=button_width, height=button_height)
-Welsh_powel = tk.Button(gui, text="Welsh Powel", command=display_ford_fulkerson_graph, width=button_width, height=button_height)
-Kruskal = tk.Button(gui, text="Kruskal", command=display_ford_fulkerson_graph, width=button_width, height=button_height)
-Bellman_ford = tk.Button(gui, text="Bellman Ford", command=display_ford_fulkerson_graph, width=button_width, height=button_height)
-Dijkstra = tk.Button(gui, text="Dijkstra", command=display_ford_fulkerson_graph, width=button_width, height=button_height)
+Welsh_powel = tk.Button(gui, text="Welsh Powel", command=display_welsh_powell_graph, width=button_width, height=button_height)
+Kruskal = tk.Button(gui, text="Kruskal", command=display_kruskal_graph, width=button_width, height=button_height)
+Bellman_ford = tk.Button(gui, text="Bellman Ford", command=display_bellman_ford_graph, width=button_width, height=button_height)
+Dijkstra = tk.Button(gui, text="Dijkstra", command=display_dijkstra_graph, width=button_width, height=button_height)
 
 # Arrange buttons in a 2x3 grid layout
 Ford_Fulkerson.grid(row=0, column=0, padx=10, pady=10)

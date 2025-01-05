@@ -1,62 +1,71 @@
+import tkinter as tk
+from tkinter import ttk
 import networkx as nx
 import matplotlib.pyplot as plt
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 import random
-import time
 
-def generer_graphe_aleatoire(n, p):
-    orienté = random.choice([True, False])
-    if orienté:
-        G = nx.gnp_random_graph(n, p, directed=True)
-    else:
-        G = nx.gnp_random_graph(n, p, directed=False)
-    return G, orienté
+def display_welsh_powell_graph():
+    # Create a new window
+    window = tk.Toplevel()
+    window.title("Welsh-Powell Algorithm - Graph Coloring")
+    window.geometry("800x600")
+    
+    # Function to generate and display the graph
+    def generate_graph():
+        nonlocal canvas
+        try:
+            # Get input value
+            num_nodes = int(num_nodes_entry.get())
+            
+            # Generate random graph
+            G = nx.gnp_random_graph(num_nodes, 0.5, directed=False)  # Edge probability fixed at 0.5
+            
+            # Apply Welsh-Powell algorithm
+            colors = nx.coloring.greedy_color(G, strategy="largest_first")
+            min_colors = max(colors.values()) + 1  # Number of colors used
+            
+            # Display the graph with node colors
+            fig, ax = plt.subplots(figsize=(8, 6))
+            pos = nx.spring_layout(G)
+            nx.draw(
+                G, pos, 
+                node_color=[colors[node] for node in G.nodes()],
+                with_labels=True, 
+                node_size=500, 
+                cmap=plt.cm.rainbow, 
+                ax=ax
+            )
+            ax.set_title(f"Graph After Welsh-Powell (Min Colors: {min_colors})", fontsize=14)
+            
+            # Embed matplotlib figure in Tkinter window
+            if canvas:
+                canvas.get_tk_widget().destroy()  # Remove previous canvas
+            canvas = FigureCanvasTkAgg(fig, master=window)
+            canvas_widget = canvas.get_tk_widget()
+            canvas_widget.pack(fill=tk.BOTH, expand=True)
 
-def coloration_welsh_powell(G):
-    # Appliquer l'algorithme Welsh-Powell pour la coloration
-    colors = nx.coloring.greedy_color(G, strategy="largest_first")
-    return colors
+            # Display number of colors in the result label
+            result_label.config(text=f"Minimum Colors Used: {min_colors}")
+        except ValueError:
+            result_label.config(text="Invalid input. Please enter a valid number.")
+    
+    # Input field for number of vertices
+    tk.Label(window, text="Number of Vertices:").pack(pady=5)
+    num_nodes_entry = tk.Entry(window)
+    num_nodes_entry.pack(pady=5)
 
-def afficher_graphe(G, couleurs_noeuds=None, titre="Graphe", orienté=False):
-    plt.figure(figsize=(10, 7))
-    pos = nx.spring_layout(G)
+    # Submit button
+    submit_btn = ttk.Button(window, text="Submit", command=generate_graph)
+    submit_btn.pack(pady=10)
 
-    if couleurs_noeuds is not None:
-        node_colors = [couleurs_noeuds[n] for n in G.nodes()]
-        nx.draw(
-            G, pos, node_color=node_colors, with_labels=True,
-            node_size=500, cmap=plt.cm.rainbow, arrows=orienté
-        )
-    else:
-        nx.draw(G, pos, node_color='blue', with_labels=True, node_size=500)
+    # Label to display results
+    result_label = tk.Label(window, text="", font=("Arial", 12))
+    result_label.pack(pady=10)
 
-    plt.title(titre)
-    plt.show()
+    # Initialize canvas for graph visualization
+    canvas = None
 
-# Mesure du temps d'exécution total
-start_time = time.time()
-
-# Demande à l'utilisateur d'entrer le nombre de sommets
-n = int(input("Entrez le nombre de sommets (n): "))
-
-# La probabilité qu'un sommet soit lié à un autre
-p = float(input("Entrez la probabilité d'arête (p, entre 0 et 1): "))
-
-# Génération du graphe aléatoire
-G, orienté = generer_graphe_aleatoire(n, p)
-
-# Application de la coloration Welsh-Powell
-couleurs_noeuds_après = coloration_welsh_powell(G)
-min_couleur_après = max(couleurs_noeuds_après.values()) + 1  # Nombre de couleurs utilisées
-
-# Affichage du graphe avec les couleurs attribuées
-afficher_graphe(G, couleurs_noeuds=couleurs_noeuds_après, 
-                titre='Graphe après Welsh-Powell', orienté=orienté)
-
-# Résultats de coloration
-print(f"Nombre minimum de couleurs (après Welsh-Powell) : {min_couleur_après}")
-print(f"Formule selon Welsh-Powell : {min_couleur_après} <= Xi(G) <= {n}")
-
-# Temps d'exécution total
-end_time = time.time()
-execution_time = end_time - start_time
-print(f"Temps d'exécution total : {execution_time:.4f} secondes")
+    # Close button
+    close_btn = ttk.Button(window, text="Close", command=window.destroy)
+    close_btn.pack(pady=10)
