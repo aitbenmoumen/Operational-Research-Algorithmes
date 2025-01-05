@@ -1,137 +1,172 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Sun Jan  5 14:01:19 2025
-
-@author: aaitb
-"""
-
 import tkinter as tk
 from tkinter import ttk
 import networkx as nx
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 import random
+import string
+import time
 
+def generate_vertex_labels(num_vertices):
+    return [chr(ord('A') + i) for i in range(num_vertices)]  # Use A, B, C... for labels
 
-# Function to generate node labels (x0, x1, ..., xn)
-def generer_etiquettes_sommets(nb_sommets):
-    etiquettes = [f"x{i}" for i in range(nb_sommets)]
-    return etiquettes
-
-# Function to generate a random directed graph with weighted edges
-def generer_graphe_oriente(n):
+def generate_directed_graph(n):
     G = nx.DiGraph()
-    sommets = generer_etiquettes_sommets(n)
+    vertices = generate_vertex_labels(n)
     
-    for sommet in sommets:
-        G.add_node(sommet, size=800)
+    # Add nodes
+    for vertex in vertices:
+        G.add_node(vertex)
 
     # Add edges with random weights
     for i in range(n):
-        for j in range(i + 1, n):
-            if random.choice([True, False]):
-                poids = random.randint(1, 100)
-                G.add_edge(f"x{i}", f"x{j}", weight=poids)
-            else:
-                poids = random.randint(1, 100)
-                G.add_edge(f"x{j}", f"x{i}", weight=poids)
+        for j in range(n):
+            if i != j and random.random() < 0.3:  # 30% chance of edge creation
+                weight = random.randint(1, 100)
+                G.add_edge(vertices[i], vertices[j], weight=weight)
 
     return G
 
-# Function to display the graph
-def afficher_graphe(G, chemin=None):
-    pos = nx.spring_layout(G, seed=42)
-    node_sizes = [G.nodes[node]['size'] for node in G]
-
-    fig = plt.Figure(figsize=(6, 5))
+def display_graph(G, path=None):
+    plt.clf()  # Clear the current figure
+    fig = plt.Figure(figsize=(8, 6))  # Increased figure size for better visibility
     ax = fig.add_subplot(111)
     
-    nx.draw(G, pos, with_labels=True, node_size=node_sizes, node_color="lightblue",
-            font_weight="bold", arrows=True, ax=ax)
+    # Use a circular layout with more spacing
+    pos = nx.circular_layout(G, scale=0.9)  # Increased scale for better spacing
     
-    labels = nx.get_edge_attributes(G, 'weight')
-    nx.draw_networkx_edge_labels(G, pos, edge_labels=labels, ax=ax)
+    # Draw nodes
+    nx.draw_networkx_nodes(G, pos, 
+                          node_color='lightblue',
+                          node_size=1000,  # Increased node size
+                          ax=ax)
     
-    if chemin:
-        edges = [(chemin[i], chemin[i + 1]) for i in range(len(chemin) - 1)]
-        nx.draw_networkx_edges(G, pos, edgelist=edges, edge_color='red', width=2, arrows=True, ax=ax)
-
+    # Draw node labels with increased font size
+    nx.draw_networkx_labels(G, pos, 
+                           font_size=12,  # Increased font size
+                           font_weight='bold',
+                           font_family='sans-serif')
+    
+    # Draw edges
+    edges = G.edges()
+    nx.draw_networkx_edges(G, pos, 
+                          edgelist=edges,
+                          arrows=True,
+                          edge_color='gray',
+                          width=1,
+                          ax=ax)
+    
+    # Draw edge weights with better positioning
+    edge_labels = nx.get_edge_attributes(G, 'weight')
+    nx.draw_networkx_edge_labels(G, pos, 
+                                edge_labels=edge_labels,
+                                font_size=10,  # Increased font size
+                                label_pos=0.5)  # Center the label on the edge
+    
+    # Highlight the shortest path if provided
+    if path:
+        path_edges = list(zip(path[:-1], path[1:]))
+        nx.draw_networkx_edges(G, pos,
+                             edgelist=path_edges,
+                             edge_color='red',
+                             width=2,
+                             arrows=True,
+                             ax=ax)
+    
+    # Set axis limits to center the graph
+    ax.set_axis_off()
+    ax.margins(0.2)  # Add margins around the graph
+    fig.tight_layout()
+    
     return fig
 
-# Bellman-Ford algorithm for shortest path
-def bellman_ford_graphe(G, source, target):
+def bellman_ford_graph(G, source, target):
     try:
         distance = nx.single_source_bellman_ford_path_length(G, source)
-        chemin = nx.single_source_bellman_ford_path(G, source)[target]
-        return chemin, distance[target]
+        path = nx.single_source_bellman_ford_path(G, source)[target]
+        return path, distance[target]
     except nx.NetworkXNoPath:
         return None, None
 
-# Function to display Bellman-Ford graph visualization in Tkinter
 def display_bellman_ford_graph():
     window = tk.Toplevel()
     window.title("Bellman-Ford Algorithm - Shortest Path")
-    window.geometry("1100x800")  # Larger window size
-
+    window.geometry("1000x800")
+    
+    # Create a main frame to center the content
+    main_frame = ttk.Frame(window)
+    main_frame.pack(expand=True, fill='both', padx=20, pady=20)
+    
     def generate_graph():
         try:
-            # Read number of vertices and generate the graph
+            start_time = time.time()
+            
             num_vertices = int(num_vertices_entry.get())
-            G = generer_graphe_oriente(num_vertices)
+            if num_vertices < 2:
+                result_label.config(text="Please enter at least 2 vertices")
+                return
+                
+            G = generate_directed_graph(num_vertices)
+            source = source_entry.get().strip().upper()  # Convert to uppercase
+            target = target_entry.get().strip().upper()  # Convert to uppercase
             
-            # Get the source and target nodes, convert to lowercase to match node labels
-            source = source_entry.get().lower()  # Convert input to lowercase
-            target = target_entry.get().lower()  # Convert input to lowercase
-            
-            # Check if source and target nodes are in the graph
             if source not in G.nodes or target not in G.nodes:
-                result_label.config(text="Invalid source or target node. Please enter valid nodes.")
+                result_label.config(text="Invalid source or target node. Use format 'A', 'B', etc.")
                 return
             
-            # Apply Bellman-Ford algorithm
-            chemin, distance = bellman_ford_graphe(G, source, target)
+            path, distance = bellman_ford_graph(G, source, target)
+            end_time = time.time()
             
-            # Display the graph with the shortest path in red
-            fig = afficher_graphe(G, chemin)
-            canvas.figure = fig  # Update the figure
-            canvas.draw()
-            
-            if chemin:
-                result_label.config(text=f"Distance from {source} to {target}: {distance}")
+            if path:
+                fig = display_graph(G, path)
+                canvas.figure = fig
+                canvas.draw()
+                result_label.config(
+                    text=f"Distance from {source} to {target}: {distance} | Execution Time: {end_time - start_time:.4f} seconds"
+                )
             else:
-                result_label.config(text=f"No path from {source} to {target}")
+                fig = display_graph(G)
+                canvas.figure = fig
+                canvas.draw()
+                result_label.config(
+                    text=f"No path exists from {source} to {target} | Execution Time: {end_time - start_time:.4f} seconds"
+                )
+                
         except ValueError:
-            result_label.config(text="Invalid input. Please enter a valid number.")
+            result_label.config(text="Please enter valid numeric values")
 
+    # Input fields in a centered frame
+    input_frame = ttk.Frame(main_frame)
+    input_frame.pack(fill='x', pady=10)
 
-    # Input field for number of vertices
-    tk.Label(window, text="Number of Vertices:").pack(pady=5)
-    num_vertices_entry = tk.Entry(window)
+    tk.Label(input_frame, text="Number of Vertices:").pack(pady=5)
+    num_vertices_entry = tk.Entry(input_frame, justify='center', width=30)
     num_vertices_entry.pack(pady=5)
 
-    # Input fields for source and target nodes
-    tk.Label(window, text="Source Node (e.g., x0):").pack(pady=5)
-    source_entry = tk.Entry(window)
+    tk.Label(input_frame, text="Source Node (e.g., A):").pack(pady=5)
+    source_entry = tk.Entry(input_frame, justify='center', width=30)
     source_entry.pack(pady=5)
 
-    tk.Label(window, text="Target Node (e.g., x1):").pack(pady=5)
-    target_entry = tk.Entry(window)
+    tk.Label(input_frame, text="Target Node (e.g., B):").pack(pady=5)
+    target_entry = tk.Entry(input_frame, justify='center', width=30)
     target_entry.pack(pady=5)
 
-    # Submit button to generate the graph
-    submit_btn = ttk.Button(window, text="Submit", command=generate_graph)
+    # Submit button
+    submit_btn = ttk.Button(input_frame, text="Submit", command=generate_graph)
     submit_btn.pack(pady=10)
 
-    # Label to display results
-    result_label = tk.Label(window, text="", font=("Arial", 12))
+    # Result label
+    result_label = tk.Label(main_frame, text="", font=("Arial", 10))
     result_label.pack(pady=10)
 
-    # Initialize figure and canvas
-    fig = plt.Figure(figsize=(6, 5))
-    canvas = FigureCanvasTkAgg(fig, master=window)
-    canvas_widget = canvas.get_tk_widget()
-    canvas_widget.pack(fill=tk.BOTH, expand=True)
+    # Canvas in a frame for centering
+    canvas_frame = ttk.Frame(main_frame)
+    canvas_frame.pack(expand=True, fill='both')
+    
+    fig = plt.Figure(figsize=(8, 6))
+    canvas = FigureCanvasTkAgg(fig, master=canvas_frame)
+    canvas.get_tk_widget().pack(expand=True, fill='both', padx=10, pady=10)
 
     # Close button
-    close_btn = ttk.Button(window, text="Close", command=window.destroy)
+    close_btn = ttk.Button(main_frame, text="Close", command=window.destroy)
     close_btn.pack(pady=10)
