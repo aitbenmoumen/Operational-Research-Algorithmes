@@ -31,8 +31,7 @@ public class Implementation_Graph_Aleatoire {
             nodes[i] = "x" + i;
             graph.addVertex(nodes[i]); // cette methode accepte que des string comme parametre 
         }
-        
-        
+
         // ajouter des arrets
         for(int i = 0; i < vertices ; i++){
             for(int j = i + 1 ; j < vertices ; j++){
