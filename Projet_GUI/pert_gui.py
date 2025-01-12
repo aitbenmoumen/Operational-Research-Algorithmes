@@ -4,6 +4,23 @@ import networkx as nx
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 import random
+from datetime import datetime
+
+class ModernDarkTheme:
+    # Colors
+    BG_COLOR = "#1e1e1e"  # Dark background
+    SECONDARY_BG = "#252526"  # Slightly lighter background
+    TEXT_COLOR = "#ffffff"  # White text
+    SECONDARY_TEXT = "#cccccc"  # Slightly dimmed text
+    ACCENT_COLOR = "#007acc"  # Blue accent
+    ACCENT_HOVER = "#0098ff"  # Lighter blue for hover
+    ERROR_COLOR = "#f44336"  # Error red
+    SUCCESS_COLOR = "#4caf50"  # Success green
+    
+    # Fonts
+    MAIN_FONT = ("Segoe UI", 12)
+    TITLE_FONT = ("Segoe UI", 24, "bold")
+    SUBTITLE_FONT = ("Segoe UI", 14)
 
 def create_pert_gui():
     def generer_tableau_taches(nombre_taches):
@@ -21,20 +38,22 @@ def create_pert_gui():
             G.add_node(tache["id"], duree=tache["duree"])
             for ant in tache["anteriorite"]:
                 G.add_edge(ant, tache["id"])
+        
         G.add_node(0, duree=0)
         G.add_node(len(taches) + 1, duree=0)
+        
         for tache in taches:
             if not list(G.predecessors(tache["id"])):
                 G.add_edge(0, tache["id"])
             if not list(G.successors(tache["id"])):
                 G.add_edge(tache["id"], len(taches) + 1)
-        dates_tot = {}
+        
+        dates_tot = {0: 0}
         for node in nx.topological_sort(G):
-            if node == 0:
-                dates_tot[node] = 0
-            else:
+            if node not in dates_tot:
                 pred_dates = [dates_tot[pred] + G.nodes[pred]['duree'] for pred in G.predecessors(node)]
                 dates_tot[node] = max(pred_dates) if pred_dates else 0
+        
         dates_tard = {}
         duree_totale = dates_tot[len(taches) + 1]
         for node in reversed(list(nx.topological_sort(G))):
@@ -43,76 +62,235 @@ def create_pert_gui():
             else:
                 succ_dates = [dates_tard[succ] - G.nodes[node]['duree'] for succ in G.successors(node)]
                 dates_tard[node] = min(succ_dates) if succ_dates else duree_totale
+        
         marges = {n: dates_tard[n] - dates_tot[n] for n in G.nodes()}
         chemin_critique = [n for n in G.nodes() if marges[n] == 0]
+        
         return G, dates_tot, dates_tard, marges, chemin_critique
 
     def afficher_diagramme(G, chemin_critique):
-        fig.clear()
+        # Clear the previous figure
+        plt.close('all')
+        canvas.figure.clear()
+        ax = canvas.figure.add_subplot(111)
+        
+        # Configure plot style
+        canvas.figure.patch.set_facecolor(ModernDarkTheme.BG_COLOR)
+        ax.set_facecolor(ModernDarkTheme.SECONDARY_BG)
+        
         pos = nx.spring_layout(G)
-        nx.draw(G, pos, with_labels=True, node_color='lightblue', node_size=500, font_size=10, font_weight='bold')
-        nx.draw_networkx_nodes(G, pos, nodelist=chemin_critique, node_color='red', node_size=500)
-        nx.draw_networkx_edges(G, pos, edge_color="gray")
-        plt.title("Diagramme Potentiel Métra")
+        
+        # Draw regular nodes
+        nx.draw_networkx_nodes(G, pos,
+                             ax=ax,
+                             node_color=ModernDarkTheme.SECONDARY_BG,
+                             node_size=700,
+                             edgecolors=ModernDarkTheme.TEXT_COLOR)
+        
+        # Draw critical path nodes
+        nx.draw_networkx_nodes(G, pos,
+                             ax=ax,
+                             nodelist=chemin_critique,
+                             node_color=ModernDarkTheme.ACCENT_COLOR,
+                             node_size=700,
+                             edgecolors=ModernDarkTheme.TEXT_COLOR)
+        
+        # Draw edges
+        nx.draw_networkx_edges(G, pos,
+                             ax=ax,
+                             edge_color=ModernDarkTheme.SECONDARY_TEXT,
+                             arrows=True,
+                             arrowsize=20)
+        
+        # Add labels
+        nx.draw_networkx_labels(G, pos,
+                              ax=ax,
+                              font_size=10,
+                              font_weight='bold',
+                              font_color=ModernDarkTheme.TEXT_COLOR)
+        
+        ax.set_title("Diagramme PERT",
+                    color=ModernDarkTheme.TEXT_COLOR,
+                    pad=20,
+                    fontsize=14)
+        
+        # Remove axes
+        ax.set_axis_off()
+        
+        # Update the canvas
         canvas.draw()
 
     def execute_pert():
         try:
-            # Get user input for the number of tasks
             nombre_taches = int(nombre_taches_entry.get())
-            taches = generer_tableau_taches(nombre_taches)
+            if nombre_taches <= 0:
+                raise ValueError("Le nombre de tâches doit être positif")
             
-            # Perform the Potentiel Métra calculations
+            # Clear previous results
+            resultat_text.delete(1.0, tk.END)
+            
+            taches = generer_tableau_taches(nombre_taches)
             G, dates_tot, dates_tard, marges, chemin_critique = potentiel_metra(taches)
             
-            # Update the results in the GUI
-            resultat_taches.delete(1.0, tk.END)
-            resultat_taches.insert(tk.END, "Tâches Générées:\n")
+            # Update results
+            current_time = datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S UTC')
+            resultat_text.insert(tk.END, f"Date et heure: {current_time}\n", "timestamp")
+            resultat_text.insert(tk.END, f"Utilisateur: {user_login}\n\n", "timestamp")
+            
+            resultat_text.insert(tk.END, "Tâches générées:\n", "header")
             for t in taches:
-                resultat_taches.insert(tk.END, f"ID: {t['id']}, Durée: {t['duree']}, Antériorité: {t['anteriorite']}\n")
+                resultat_text.insert(tk.END, 
+                    f"Tâche {t['id']}: Durée = {t['duree']}, Antériorités = {t['anteriorite']}\n", 
+                    "content")
             
-            resultat_details.delete(1.0, tk.END)
-            resultat_details.insert(tk.END, "Détails (Dates & Marges):\n")
-            for node in sorted(G.nodes()):
-                if node != 0 and node != len(taches) + 1:
-                    resultat_details.insert(tk.END, f"ID: {node}, Tôt: {dates_tot[node]}, Tard: {dates_tard[node]}, Marge: {marges[node]}\n")
+            # Update critical path label
+            chemin_critique_label.config(
+                text=f"Chemin critique: {' → '.join(map(str, chemin_critique))}",
+                bg=ModernDarkTheme.SECONDARY_BG,
+                fg=ModernDarkTheme.ACCENT_COLOR
+            )
             
-            duree_totale.set(f"Durée Totale du Projet : {dates_tot[len(taches) + 1]}")
-            chemin_critique_str.set(f"Chemin Critique : {' -> '.join(map(str, chemin_critique))}")
-            
-            # Display the diagram
+            # Update graph
             afficher_diagramme(G, chemin_critique)
-        except Exception as e:
-            duree_totale.set(f"Erreur : {e}")
+            
+            # Update status
+            status_label.config(
+                text="Calcul terminé avec succès", 
+                fg=ModernDarkTheme.SUCCESS_COLOR
+            )
+            
+        except ValueError as e:
+            resultat_text.delete(1.0, tk.END)
+            resultat_text.insert(tk.END, f"Erreur: {str(e)}", "error")
+            status_label.config(
+                text=f"Erreur: {str(e)}", 
+                fg=ModernDarkTheme.ERROR_COLOR
+            )
+            chemin_critique_label.config(text="")
 
-    # Create a new Toplevel window for the Potentiel Métra GUI
-    pert_window = tk.Toplevel()
-    pert_window.title("Potentiel Métra (PERT)")
-    pert_window.geometry("1200x800")
+    # Create main window
+    window = tk.Toplevel()
+    window.title("Méthode PERT")
+    window.configure(bg=ModernDarkTheme.BG_COLOR)
+    window.geometry("1200x800")
 
-    # Input section for number of tasks
-    tk.Label(pert_window, text="Nombre de Tâches :").pack(pady=5)
-    nombre_taches_entry = tk.Entry(pert_window)
-    nombre_taches_entry.pack(pady=5)
+    # User information
+    user_login = "aitbenmoumen"
 
-    pert_button = ttk.Button(pert_window, text="Exécuter Potentiel Métra", command=execute_pert)
-    pert_button.pack(pady=10)
+    # Title
+    title_label = tk.Label(
+        window,
+        text="Méthode PERT",
+        font=ModernDarkTheme.TITLE_FONT,
+        bg=ModernDarkTheme.BG_COLOR,
+        fg=ModernDarkTheme.TEXT_COLOR
+    )
+    title_label.pack(pady=20)
 
-    # Display generated tasks
-    resultat_taches = tk.Text(pert_window, height=10, width=80)
-    resultat_taches.pack(pady=10)
+    # Input frame
+    input_frame = tk.Frame(window, bg=ModernDarkTheme.BG_COLOR)
+    input_frame.pack(pady=10)
 
-    # Display computation details (dates and margins)
-    resultat_details = tk.Text(pert_window, height=10, width=80)
-    resultat_details.pack(pady=10)
+    tk.Label(
+        input_frame,
+        text="Nombre de tâches:",
+        font=ModernDarkTheme.MAIN_FONT,
+        bg=ModernDarkTheme.BG_COLOR,
+        fg=ModernDarkTheme.TEXT_COLOR
+    ).pack(side=tk.LEFT, padx=5)
 
-    # Labels for duration and critical path
-    duree_totale = tk.StringVar()
-    chemin_critique_str = tk.StringVar()
-    tk.Label(pert_window, textvariable=duree_totale, font=("Helvetica", 12, "bold")).pack(pady=5)
-    tk.Label(pert_window, textvariable=chemin_critique_str, font=("Helvetica", 12, "bold")).pack(pady=5)
+    nombre_taches_entry = tk.Entry(
+        input_frame,
+        font=ModernDarkTheme.MAIN_FONT,
+        bg=ModernDarkTheme.SECONDARY_BG,
+        fg=ModernDarkTheme.TEXT_COLOR,
+        insertbackground=ModernDarkTheme.TEXT_COLOR
+    )
+    nombre_taches_entry.pack(side=tk.LEFT, padx=5)
 
-    # Canvas for the graph diagram
-    fig = plt.Figure(figsize=(8, 6))
-    canvas = FigureCanvasTkAgg(fig, master=pert_window)
-    canvas.get_tk_widget().pack(pady=10)
+    # Submit button
+    style = ttk.Style()
+    style.theme_use("clam")
+    style.configure(
+        "Modern.TButton",
+        background=ModernDarkTheme.ACCENT_COLOR,
+        foreground=ModernDarkTheme.TEXT_COLOR,
+        font=ModernDarkTheme.MAIN_FONT,
+        padding=(20, 10)
+    )
+    style.map(
+        "Modern.TButton",
+        background=[("active", ModernDarkTheme.ACCENT_HOVER)]
+    )
+
+    submit_button = ttk.Button(
+        window,
+        text="Générer et Calculer",
+        style="Modern.TButton",
+        command=execute_pert
+    )
+    submit_button.pack(pady=10)
+
+    # Critical path label
+    chemin_critique_label = tk.Label(
+        window,
+        text="",
+        font=ModernDarkTheme.SUBTITLE_FONT,
+        bg=ModernDarkTheme.BG_COLOR,
+        fg=ModernDarkTheme.ACCENT_COLOR,
+        wraplength=800
+    )
+    chemin_critique_label.pack(pady=10)
+
+    # Results text
+    resultat_text = tk.Text(
+        window,
+        height=10,
+        width=70,
+        font=ModernDarkTheme.MAIN_FONT,
+        bg=ModernDarkTheme.SECONDARY_BG,
+        fg=ModernDarkTheme.TEXT_COLOR,
+        padx=10,
+        pady=10
+    )
+    resultat_text.pack(pady=10)
+
+    # Configure text tags
+    resultat_text.tag_configure("header", foreground=ModernDarkTheme.ACCENT_COLOR, font=ModernDarkTheme.SUBTITLE_FONT)
+    resultat_text.tag_configure("content", foreground=ModernDarkTheme.TEXT_COLOR)
+    resultat_text.tag_configure("error", foreground=ModernDarkTheme.ERROR_COLOR)
+    resultat_text.tag_configure("timestamp", foreground=ModernDarkTheme.SECONDARY_TEXT)
+
+    # Status label
+    status_label = tk.Label(
+        window,
+        text="",
+        font=ModernDarkTheme.MAIN_FONT,
+        bg=ModernDarkTheme.BG_COLOR,
+        fg=ModernDarkTheme.TEXT_COLOR
+    )
+    status_label.pack(pady=5)
+
+    # Graph canvas
+    canvas = FigureCanvasTkAgg(plt.Figure(figsize=(8, 6)), master=window)
+    canvas.get_tk_widget().pack(pady=10, padx=20, fill=tk.BOTH, expand=True)
+
+    # Footer with timestamp
+    footer_frame = tk.Frame(window, bg=ModernDarkTheme.BG_COLOR)
+    footer_frame.pack(fill=tk.X, pady=5)
+
+    tk.Label(
+        footer_frame,
+        text=f"Current User: {user_login} | {datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S UTC')}",
+        font=("Segoe UI", 8),
+        bg=ModernDarkTheme.BG_COLOR,
+        fg=ModernDarkTheme.SECONDARY_TEXT
+    ).pack(side=tk.RIGHT, padx=10)
+
+    return window
+
+if __name__ == "__main__":
+    root = tk.Tk()
+    root.withdraw()
+    app_window = create_pert_gui()
+    app_window.mainloop()
