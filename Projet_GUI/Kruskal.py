@@ -7,7 +7,6 @@ import random
 import string
 import time
 
-# Function to generate node labels (A, B, ..., Z, AA, AB, ..., ZZ)
 def generer_etiquettes_sommets(nb_sommets):
     alphabet = string.ascii_uppercase
     etiquettes = []
@@ -19,17 +18,15 @@ def generer_etiquettes_sommets(nb_sommets):
         etiquettes.append(etiquette)
     return etiquettes
 
-# Function to generate a random graph with weighted edges
 def generer_graphe(nb_sommets):
     sommets = generer_etiquettes_sommets(nb_sommets)
     aretes = []
     for i in range(nb_sommets):
         for j in range(i + 1, nb_sommets):
-            poids = random.randint(1, 1000)  # Random weights between 1 and 1000
+            poids = random.randint(1, 1000)
             aretes.append((sommets[i], sommets[j], poids))
     return sommets, aretes
 
-# Kruskal's algorithm
 def kruskal(sommets, aretes):
     aretes_triees = sorted(aretes, key=lambda x: x[2])
     parent = {s: s for s in sommets}
@@ -62,7 +59,6 @@ def kruskal(sommets, aretes):
             cout_total += poids
     return arbre_couvrant_min, cout_total
 
-# Function to visualize the graph
 def visualiser_graphe(fig, sommets, aretes, acm=None, titre="Graphe"):
     G = nx.Graph()
     for sommet_u, sommet_v, poids in aretes:
@@ -70,66 +66,215 @@ def visualiser_graphe(fig, sommets, aretes, acm=None, titre="Graphe"):
 
     pos = nx.spring_layout(G, seed=42)
 
-    # Clear the figure
     fig.clear()
     ax = fig.add_subplot(111)
+    ax.set_facecolor('#303030')
+    fig.patch.set_facecolor('#303030')
 
-    nx.draw(G, pos, with_labels=True, node_color='lightblue', node_size=500, font_size=10, font_weight='bold', edge_color='gray', ax=ax)
-    nx.draw_networkx_edge_labels(G, pos, edge_labels={(u, v): f'{poids}' for u, v, poids in aretes}, ax=ax)
+    nx.draw(
+        G, pos,
+        with_labels=True,
+        node_color='#4CAF50',
+        node_size=500,
+        font_size=10,
+        font_weight='bold',
+        font_color='white',
+        edge_color='#666666',
+        ax=ax
+    )
+    
+    edge_labels = {(u, v): f'{poids}' for u, v, poids in aretes}
+    nx.draw_networkx_edge_labels(
+        G, pos,
+        edge_labels=edge_labels,
+        font_size=8,
+        font_color='white',
+        ax=ax
+    )
     
     if acm:
         acm_edges = [(u, v) for u, v, _ in acm]
-        nx.draw_networkx_edges(G, pos, edgelist=acm_edges, width=3, edge_color='blue', ax=ax)
+        nx.draw_networkx_edges(
+            G, pos,
+            edgelist=acm_edges,
+            width=3,
+            edge_color='#3F51B5',
+            ax=ax
+        )
     
-    ax.set_title(titre)
+    ax.set_title(titre, color='white', pad=20, fontsize=14)
     fig.tight_layout()
 
-# Function to display Kruskal algorithm visualization in Tkinter
 def display_kruskal_graph():
     window = tk.Toplevel()
-    window.title("Kruskal Algorithm - Minimum Spanning Tree")
-    window.geometry("1000x800")  # Increase window size
+    window.title("Algorithme de Kruskal - Arbre Couvrant Minimal")
+    window.geometry("1000x800")
+    window.configure(bg="#303030")
     
-    # Configure window to adjust dynamically
-    window.grid_rowconfigure(0, weight=1)
-    window.grid_columnconfigure(0, weight=1)
+    # Configure styles
+    style = ttk.Style()
+    style.theme_use("clam")
+    
+    style.configure(
+        "Custom.TButton",
+        background="#3F51B5",
+        foreground="white",
+        font=("Calibri", 12, "bold"),
+        padding=(20, 10),
+        borderwidth=0,
+        borderradius=20,
+    )
+    
+    style.map(
+        "Custom.TButton",
+        background=[("active", "#5C6BC0")],
+        foreground=[("active", "white")],
+    )
+    
+    # Create main container
+    container = tk.Frame(window, bg="#303030")
+    container.pack(expand=True, fill="both", padx=40, pady=20)
+    
+    # Title section
+    title_frame = tk.Frame(container, bg="#303030")
+    title_frame.pack(fill="x", pady=(0, 20))
+    
+    title_label = tk.Label(
+        title_frame,
+        text="Algorithme de Kruskal",
+        font=("Calibri", 24, "bold"),
+        bg="#303030",
+        fg="#F0F8FF",
+    )
+    title_label.pack(pady=(0, 5))
+    
+    subtitle_label = tk.Label(
+        title_frame,
+        text="Arbre Couvrant Minimal",
+        font=("Calibri", 14),
+        bg="#303030",
+        fg="#AAAAAA",
+    )
+    subtitle_label.pack()
+    
+    # Separator
+    separator = ttk.Separator(container, orient="horizontal")
+    separator.pack(fill="x", pady=(0, 20))
+    
+    # Input section
+    input_frame = tk.Frame(container, bg="#303030")
+    input_frame.pack(fill="x", pady=10)
+    
+    tk.Label(
+        input_frame,
+        text="Nombre de Sommets:",
+        font=("Calibri", 12),
+        bg="#303030",
+        fg="#F0F8FF"
+    ).pack(side="left", padx=10)
+    
+    num_vertices_entry = tk.Entry(
+        input_frame,
+        font=("Calibri", 12),
+        bg="#404040",
+        fg="#F0F8FF",
+        insertbackground="#F0F8FF",
+        relief="flat",
+        width=10
+    )
+    num_vertices_entry.pack(side="left", padx=10)
     
     def generate_graph():
         try:
             num_vertices = int(num_vertices_entry.get())
+            if num_vertices <= 0:
+                raise ValueError("Le nombre de sommets doit être positif")
+                
             sommets, aretes = generer_graphe(num_vertices)
             
             start_time = time.time()
             acm, cout_total = kruskal(sommets, aretes)
             end_time = time.time()
-
-            # Visualize the graph with MST
-            visualiser_graphe(fig, sommets, aretes, acm=acm, titre=f"Minimum Spanning Tree (Cost: {cout_total})")
+            
+            visualiser_graphe(
+                fig,
+                sommets,
+                aretes,
+                acm=acm,
+                titre=f"Arbre Couvrant Minimal (Coût: {cout_total})"
+            )
             canvas.draw()
             
-            result_label.config(text=f"Total Cost: {cout_total} | Execution Time: {end_time - start_time:.4f} seconds")
-        except ValueError:
-            result_label.config(text="Invalid input. Please enter a valid number.")
-
-    # Input field for number of vertices
-    tk.Label(window, text="Number of Vertices:").pack(pady=5)
-    num_vertices_entry = tk.Entry(window)
-    num_vertices_entry.pack(pady=5)
-
-    # Submit button
-    submit_btn = ttk.Button(window, text="Submit", command=generate_graph)
-    submit_btn.pack(pady=10)
-
-    # Label to display results (smaller font size)
-    result_label = tk.Label(window, text="", font=("Arial", 10))  # Smaller font size
-    result_label.pack(pady=10, fill=tk.BOTH, expand=True)
-
+            execution_time = end_time - start_time
+            result_label.config(
+                text=f"Coût Total: {cout_total} | Temps d'Exécution: {execution_time:.4f} secondes",
+                fg="#4CAF50"
+            )
+        except ValueError as e:
+            result_label.config(
+                text="Erreur: Veuillez entrer un nombre entier positif",
+                fg="#FF5252"
+            )
+    
+    # Button frame
+    button_frame = tk.Frame(container, bg="#303030")
+    button_frame.pack(fill="x", pady=10)
+    
+    generate_btn = ttk.Button(
+        button_frame,
+        text="Générer le Graphe",
+        style="Custom.TButton",
+        command=generate_graph
+    )
+    generate_btn.pack(pady=10)
+    
+    # Result label
+    result_label = tk.Label(
+        container,
+        text="",
+        font=("Calibri", 12),
+        bg="#303030",
+        fg="#F0F8FF",
+        wraplength=900
+    )
+    result_label.pack(pady=10)
+    
+    # Graph frame
+    graph_frame = tk.Frame(container, bg="#303030")
+    graph_frame.pack(fill=tk.BOTH, expand=True, pady=10)
+    
     # Initialize figure and canvas
-    fig = plt.Figure(figsize=(6, 5))
-    canvas = FigureCanvasTkAgg(fig, master=window)
-    canvas_widget = canvas.get_tk_widget()
-    canvas_widget.pack(fill=tk.BOTH, expand=True)
-
-    # Close button
-    close_btn = ttk.Button(window, text="Close", command=window.destroy)
-    close_btn.pack(pady=10)
+    fig = plt.Figure(figsize=(10, 8))
+    canvas = FigureCanvasTkAgg(fig, master=graph_frame)
+    canvas.get_tk_widget().pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
+    
+    # Bottom section
+    bottom_frame = tk.Frame(container, bg="#303030")
+    bottom_frame.pack(fill="x", pady=20)
+    
+    close_btn = ttk.Button(
+        bottom_frame,
+        text="Fermer",
+        style="Custom.TButton",
+        command=window.destroy
+    )
+    close_btn.pack(pady=5)
+    
+    # Version label
+    version_label = tk.Label(
+        container,
+        text="Version 1.0",
+        font=("Calibri", 10),
+        bg="#303030",
+        fg="#666666"
+    )
+    version_label.pack(side="bottom", pady=5)
+    
+    # Center window
+    window_width = 1000
+    window_height = 800
+    screen_width = window.winfo_screenwidth()
+    screen_height = window.winfo_screenheight()
+    center_x = int(screen_width/2 - window_width/2)
+    center_y = int(screen_height/2 - window_height/2)
+    window.geometry(f"{window_width}x{window_height}+{center_x}+{center_y}")
