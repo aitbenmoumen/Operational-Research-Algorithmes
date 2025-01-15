@@ -5,12 +5,23 @@ Created on Sun Jan 12 12:17:31 2025
 """
 import tkinter as tk
 from tkinter import ttk
-from gui import guiMenu  # Ensure this exists
+from tkinter import PhotoImage
+from gui import guiMenu  
+import os
+import sys
+
+
+# Helper function to get the resource path (for PyInstaller compatibility)
+def resource_path(relative_path):
+    """ Get the absolute path to a resource. Works for PyInstaller. """
+    base_path = getattr(sys, '_MEIPASS', os.path.dirname(os.path.abspath(__file__)))
+    return os.path.join(base_path, relative_path)
+
 
 # Create the main Tkinter window
 main = tk.Tk()
 main.title("La recherche operationnel")
-main.geometry("800x500")  # Increased window size for better proportions
+main.geometry("1000x800")  # Increased window size for better proportions
 main.configure(bg="#303030")  # Dark background
 main.resizable(False, False)  # Fix window size
 
@@ -18,6 +29,7 @@ main.resizable(False, False)  # Fix window size
 calibri_font = ("Calibri", 14)
 title_font = ("Calibri", 32, "bold")
 subtitle_font = ("Calibri", 12)
+info_font = ("Calibri", 12, "italic")
 
 # Define styles for ttk buttons
 style = ttk.Style()
@@ -68,6 +80,25 @@ subtitle_label = tk.Label(
 )
 subtitle_label.pack()
 
+# Add the photo section
+photo_frame = tk.Frame(container, bg="#303030")
+photo_frame.pack(pady=(0, 30))
+
+# Load the photo dynamically
+image_path = resource_path("emsi.png")  # Get the correct path to the image
+photo = PhotoImage(file=image_path)
+photo_label = tk.Label(photo_frame, image=photo, bg="#303030")
+photo_label.pack()
+
+info_label = tk.Label(
+    container,
+    text="Réalisé par Ait ben moumen Adam\nSous l'encadrement de Dr. El Mkhalet Mouna",
+    font=info_font,
+    bg="#303030",
+    fg="#F0F8FF"
+)
+info_label.pack(pady=(20, 10))
+
 # Create a decorative line
 separator = ttk.Separator(container, orient="horizontal")
 separator.pack(fill="x", pady=(0, 30))
@@ -105,7 +136,7 @@ footer_label.pack(side="bottom", pady=20)
 
 # Center the window on the screen
 window_width = 800
-window_height = 500
+window_height = 600
 screen_width = main.winfo_screenwidth()
 screen_height = main.winfo_screenheight()
 center_x = int(screen_width/2 - window_width/2)
